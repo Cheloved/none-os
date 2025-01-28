@@ -26,8 +26,8 @@ disk.img: boot.bin stage2.bin kernel.bin text.txt
 	mkfs.fat -F 12 $@
 
 	dd if=boot.bin of=$@ seek=0 conv=notrunc
-	mcopy -i $@ stage2.bin ::/
 	mcopy -i $@ kernel.bin ::/
+	mcopy -i $@ stage2.bin ::/
 	mcopy -i $@ text.txt ::/
 
 # Сборка загрузчика

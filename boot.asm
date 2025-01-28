@@ -73,9 +73,20 @@ start:
     mul cx  ; AX = bytes_per_sector * sectors_per_fat * fat_count
 
     add si, ax   ; SI = начало root dir
-    mov cx, 11   ; 11 байт имени
-    call print_string_count
 
+.stage2_loop:
+    ; Сравнить имя с 'STAGE2  BIN'
+    mov di, stage2_name
+    mov cx, 11          ; 11 байт имени
+    repe cmpsb          ; Побайтовое сравнение SI и DI
+
+    jz .stage2_found
+    add si, 31          ; Если не STAGE2, переход к следующему файлу
+    jmp .stage2_loop
+
+.stage2_found:
+    mov si, stage2_found_msg
+    call print_string
     jmp $
 
 ; Обработчик ошибки чтения с диска
@@ -124,6 +135,11 @@ print_string_count:
 
     loop .loop
 .done:
+    mov ax, 0x0E0D        ; \r
+    mov bh, 0x00
+    int 0x10
+    mov ax, 0x0E0A        ; \n
+    int 0x10
     popa
     ret
 
@@ -164,6 +180,7 @@ lba2chs:
 ; Данные
 init_msg          db "MBR Bootloader loaded", 0xD, 0xA, 0
 disk_ok_msg       db "FAT table and root dir loaded from disk", 0xD, 0xA, 0
+stage2_found_msg  db "Stage2 entry found", 0xD, 0xA, 0
 before_stage2_msg db "Entering stage 2", 0xD, 0xA, 0
 error_msg         db "Disk error on loading stage2!", 0xD, 0xA, 0
 stage2_name       db "STAGE2  BIN"
