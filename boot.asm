@@ -108,7 +108,7 @@ start:
     call print_string
 .read_ok:
     ; При отсутствии ошибки, вывести соотв. сообщение
-    mov si, disk_ok_msg
+    mov si, chain_disk_ok_msg
     call print_string
 
     ; Получение адреса следующего кластера в FAT таблице
@@ -243,6 +243,7 @@ lba2chs:
 
 ; Данные
 disk_ok_msg         db "FAT table and root loaded", 0xD, 0xA, 0
+chain_disk_ok_msg   db "Next cluster loaded", 0xD, 0xA, 0
 stage2_loaded_msg   db "Stage2 loaded into memory", 0xD, 0xA, 0
 loop_read_error_msg db "Err FAT chain", 0xD, 0xA, 0
 error_msg           db "Disk error on loading stage2!", 0xD, 0xA, 0
