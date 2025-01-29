@@ -55,7 +55,8 @@ run: disk.img
 	# $(QEMU) -nographic -drive format=raw,file=$<
 	# $(QEMU) -display curses -serial stdio -drive format=raw,file=$<
 	# $(QEMU) -display none -vnc :0 -drive format=raw,file=$<
-	$(QEMU) -display vnc=:0 -vga std -drive format=raw,file=$<
+	# $(QEMU) -display vnc=:0 -vga std -drive format=raw,file=$<
+	$(QEMU) -display vnc=:0 -vga std -fda $<
 
 # Очистка
 clean:

@@ -41,10 +41,6 @@ start:
     mov ax, 0x0003
     int 0x10
 
-    ; Начальный текст
-    mov si, init_msg
-    call print_string
-
     ; === Чтение FAT таблиц и Root directory === ;
     ; Получение адреса сектора в формате CHS
     mov ax, 1        ; LBA = 1
@@ -85,9 +81,60 @@ start:
     jmp .stage2_loop
 
 .stage2_found:
-    mov si, stage2_found_msg
+    mov cx, 0x7e00      ; Начало FAT таблиц
+    mov dx, 0xBC00      ; Начало части с данными
+    mov bx, dx          ; Адрес загрузки следующего сектора
+
+    mov di, [si + 26]   ; Номер первого кластера с файлом
+    
+.read_loop:
+    ; Чтение следующего сектора файла
+    ; Получение адреса сектора в формате CHS
+    mov ax, di                              ; AX = cluster
+    sub ax, 2                               ; AX = cluster - 2
+    mul byte [bdb_sectors_per_cluster]      ; AX = (cluster-2)*sec_per_cluster
+    add ax, word [data_start]               ; AX = start+(cluster-2)*sec_per_cluster
+    call lba2chs
+
+    cli
+    mov ah, 0x02        ; Функция чтения секторов
+    mov al, 1           ; Количество секторов для чтения
+    int 0x13
+    sti
+
+    ; Получение адреса следующего кластера в FAT таблице
+    push bx
+    mov ax, di  ; ax = di
+    mov bx, 3   ; ax = di * 3
+    mul bx
+
+    mov bx, 2
+    div bx      ; ax = di * 3 / 2
+    add ax, dx  ; ax = (di * 3 / 2) + (di*3/2) % 2
+    pop bx
+
+    mov di, [fat_start]
+    add di, ax     ; di = адрес следующего кластера
+    mov ax, [di]
+    mov di, ax
+    shr di, 4      ; di = номер следующего кластера
+
+    cmp di, 0xFF8
+    jae .read_end
+
+    add bx, 512
+    jmp .read_loop
+.read_end:
+    mov si, stage2_loaded_msg
     call print_string
-    jmp $
+
+    jmp 0xBC00
+
+fat_read_error:
+    mov si, fat_read_error_msg
+    call print_string
+    cli
+    hlt
 
 ; Обработчик ошибки чтения с диска
 disk_error:
@@ -178,12 +225,14 @@ lba2chs:
     ret
 
 ; Данные
-init_msg          db "MBR Bootloader loaded", 0xD, 0xA, 0
 disk_ok_msg       db "FAT table and root dir loaded from disk", 0xD, 0xA, 0
-stage2_found_msg  db "Stage2 entry found", 0xD, 0xA, 0
+stage2_loaded_msg db "Stage2 loaded into memory", 0xD, 0xA, 0
 before_stage2_msg db "Entering stage 2", 0xD, 0xA, 0
+fat_read_error_msg db "Error reading FAT table", 0xD, 0xA, 0
 error_msg         db "Disk error on loading stage2!", 0xD, 0xA, 0
 stage2_name       db "STAGE2  BIN"
+fat_start         dw 0x7E00
+data_start        dw 0xBC00
 
 ; Заполнение до 512 байт
 times 510 - ($ - $$) db 0
