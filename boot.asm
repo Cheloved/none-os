@@ -128,7 +128,7 @@ start:
     mov si, stage2_loaded_msg
     call print_string
 
-    jmp 0xBC00
+    jmp 0xBE00
 
 fat_read_error:
     mov si, fat_read_error_msg
@@ -232,7 +232,7 @@ fat_read_error_msg db "Error reading FAT table", 0xD, 0xA, 0
 error_msg         db "Disk error on loading stage2!", 0xD, 0xA, 0
 stage2_name       db "STAGE2  BIN"
 fat_start         dw 0x7E00
-data_start        dw 0xBC00
+data_start        dw 0xBE00
 
 ; Заполнение до 512 байт
 times 510 - ($ - $$) db 0
