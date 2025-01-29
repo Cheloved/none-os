@@ -2,7 +2,8 @@
 CC := gcc
 ASM := nasm
 LD = ld
-QEMU := qemu-system-x86_64
+# QEMU := qemu-system-x86_64
+QEMU := qemu-system-i386
 
 # Флаги
 ASMFLAGS := -f bin
