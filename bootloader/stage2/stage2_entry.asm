@@ -21,79 +21,6 @@ stage2_entry:
     call main
     jmp $
 
-    ; === Переход в графический режим VBE === ;
-    ; Загрузка информации в vbe_info
-    mov ax, 0x4F00
-    mov di, vbe_info
-    int 0x10
-
-    ; Проверка на ошибку
-    cmp ax, 0x004F
-    jne vbe_read_error
-
-     ;Вывод смещения и сегмента
-    ; mov si, vbe_seg_msg
-    ; call print_string
-    ; mov dx, [vbe_info+0x0e]
-    ; call print_hex_16
-    ; mov dx, [vbe_info+0x10]
-    ; call print_hex_16
-
-    ; Поиск подходящего режима
-    mov si, [vbe_info+0x10]     ; Сегмент списка
-    mov fs, si             
-    mov si, [vbe_info+0x0E]     ; Смещение списка
-
-mode_loop:
-    mov cx, [fs:si]     ; Чтение номера режима
-    cmp cx, 0xFFFF      ; 0xFFFF обозначает конец списка режимов
-    je loop_not_found
-    add si, 2           ; Переход к следующему режиму для след итерации
-
-    ; Получение информации о режиме в vbe_mode_info
-    mov ax, 0x4F01
-    mov di, vbe_mode_info
-    int 0x10
-    cmp ax, 0x004F      ; Неподдерживаемый режим
-    jne mode_loop
-
-    ; Проверка атрибутов режима
-    test word [vbe_mode_info+0x00], 0x80    ; Если 1, использует линейный буфер
-    jz mode_loop                            ; Если нет, переход к следующему режиму
-
-    mov eax, [vbe_mode_info+0x28]
-    cmp eax, 0
-    je mode_loop     ; Пропустить, если адрес нулевой
-
-    ; cmp word [vbe_mode_info+0x12], 0d1920   ; Ширина = 1024 пикселя
-    cmp word [vbe_mode_info+0x12], 0d640   ; Ширина = 1024 пикселя
-    jne mode_loop
-
-    cmp byte [vbe_mode_info+0x19], 0d32     ; 32 бита на пиксель
-    jne mode_loop
-
-    ; Если найден, установить режим
-    ; mov ax, 0x4F02
-    ; mov bx, cx
-    ; or bx, 0x4000   ; Использовать линейный буфер
-    ; int 0x10
-
-    ; cmp ax, 0x004F
-    ; jne vbe_set_error
-
-    ; Сохранение параметров VBE
-    mov eax, [vbe_mode_info+0x28]   ; Адрес начала буфера
-    mov [framebuffer], eax          
-
-    mov ax, [vbe_mode_info+0x12]    ; Ширина экрана
-    mov [screen_width], ax
-
-    mov ax, [vbe_mode_info+0x14]    ; Высота экрана
-    mov [screen_height], ax
-
-    mov al, [vbe_mode_info+0x19]    ; Бит на пиксель
-    mov [bpp], al
-
     ; === ПЕРЕХОД В PROTECTED MODE === ;
     ; Активация линии А20
     mov ax, 0x2401
@@ -159,41 +86,11 @@ disk_error:
     call print_string
     cli
     hlt
-vbe_read_error:
-    mov si, vbe_read_error_msg
-    call print_string
-    cli
-    hlt
-vbe_set_error:
-    mov si, vbe_set_error_msg
-    call print_string
-    cli
-    hlt
-loop_not_found:
-    mov si, loop_not_found_msg
-    call print_string
-    cli
-    hlt
 
 ; === Текстовые данные === ;
 init_msg             db "Stage 2 entered", 0xD, 0xA, 0
 disk_ok_msg          db "Kernel loaded from disk", 0xD, 0xA, 0
 error_msg            db "Disk error on kernel loading!", 0xD, 0xA, 0
-vbe_seg_msg          db "VBE offset and sector:", 0xD, 0xA, 0
-vbe_read_error_msg   db "VBE not supported", 0xD, 0xA, 0
-vbe_set_error_msg    db "Error setting VBE mode", 0xD, 0xA, 0
-loop_not_found_msg   db "Video mode not found", 0xD, 0xA, 0
-mode_found_msg       db "Mode found, it's number:", 0xD, 0xA, 0
-fb_msg               db "Frame buffer address:", 0xD, 0xA, 0
-
-; === Структуры для VBE === ;
-vbe_info:       times 512 db 0
-vbe_mode_info:  times 256 db 0
-
-framebuffer     dd 0
-screen_width    dw 0
-screen_height   dw 0
-bpp             db 0
 
 ; === Определение GDT === ;
 gdt_start:
