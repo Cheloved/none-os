@@ -7,7 +7,7 @@ BUILD_DIR ?= build
 # Флаги
 ASMFLAGS := -f elf32
 CFLAGS := -O0 -nostdlib -ffreestanding -fno-pie -fno-pic \
-		  -mno-red-zone -m32 -march=i386 -mtune=i386
+		  -mno-red-zone -m16 -march=i386 -mtune=i386
 LDFLAGS := -m elf_i386 -T stage2.ld -nostdlib --oformat binary
 
 # Исходные файлы

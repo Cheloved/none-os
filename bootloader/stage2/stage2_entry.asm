@@ -18,7 +18,8 @@ stage2_entry:
     mov si, init_msg 
     call print_string
 
-    ; jmp $
+    call main
+    jmp $
 
     ; === Переход в графический режим VBE === ;
     ; Загрузка информации в vbe_info
