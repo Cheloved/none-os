@@ -13,7 +13,8 @@ LDFLAGS := -m elf_i386 -T stage2.ld -nostdlib --oformat binary
 # Исходные файлы
 STAGE2_ENTRY := stage2_entry.asm
 STAGE2_SRCS := stage2.c $(wildcard *.c)
-STAGE2_OBJS := stage2_entry.o $(STAGE2_SRCS:.c=.o)
+# STAGE2_OBJS := stage2_entry.o $(STAGE2_SRCS:.c=.o)
+STAGE2_OBJS := $(STAGE2_SRCS:.c=.o)
 
 all: always $(BUILD_DIR)/stage2.bin 
 
