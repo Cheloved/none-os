@@ -1,8 +1,8 @@
 OUTPUT_FORMAT("binary")
 OUTPUT_ARCH(i386)
-ENTRY(_start)
+ENTRY(stage2_entry)
 SECTIONS {
-    . = 0x8600;
+    . = 0xBC00;
     .text : { *(.text) }
     .data : { *(.data) }
     .rodata : { *(.rodata) }

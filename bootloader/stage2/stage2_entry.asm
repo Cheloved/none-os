@@ -1,7 +1,9 @@
 [bits 16]
-[org 0xBC00]
 
-stage2:
+extern main
+global stage2_entry
+
+stage2_entry:
     ; Настройка сегментных регистров
     xor ax, ax
     mov ds, ax
@@ -16,7 +18,7 @@ stage2:
     mov si, init_msg 
     call print_string
 
-    jmp $
+    ; jmp $
 
     ; === Переход в графический режим VBE === ;
     ; Загрузка информации в vbe_info
@@ -70,35 +72,13 @@ mode_loop:
     jne mode_loop
 
     ; Если найден, установить режим
-    ;mov si, mode_found_msg
-    ;call print_string
-    ;mov dx, cx          ; Вывод номера режима
-    ;call print_hex_16
+    ; mov ax, 0x4F02
+    ; mov bx, cx
+    ; or bx, 0x4000   ; Использовать линейный буфер
+    ; int 0x10
 
-    ;mov si, fb_msg
-    ;call print_string
-    ;mov dx, [vbe_mode_info+0x28]  ; Вывод начала буффера
-    ;call print_hex_16
-    ;mov dx, [vbe_mode_info+0x2A]  ; Вывод начала буффера
-    ;call print_hex_16
-    ;
-    ;mov dx, [vbe_mode_info+0x12]  ; Ширина
-    ;call print_hex_16
-    ;mov dx, [vbe_mode_info+0x14]  ; Высота
-    ;call print_hex_16
-    ;xor dx, dx
-    ;mov dl, [vbe_mode_info+0x19]  ; Высота
-    ;call print_hex_16
-
-    ;jmp $
-
-    mov ax, 0x4F02
-    mov bx, cx
-    or bx, 0x4000   ; Использовать линейный буфер
-    int 0x10
-
-    cmp ax, 0x004F
-    jne vbe_set_error
+    ; cmp ax, 0x004F
+    ; jne vbe_set_error
 
     ; Сохранение параметров VBE
     mov eax, [vbe_mode_info+0x28]   ; Адрес начала буфера
@@ -170,41 +150,6 @@ print_string_count:
     loop .loop
 .done:
     popa
-    ret
-
-; Функция вывода числа в HEX (16-бит)
-; Вход: DX = число для вывода
-; Выход: -
-print_hex_16:
-    pusha               ; Сохраняем все регистры
-    push ds
-    push es
-    xor bx, bx
-    mov cx, 4           ; 4 ниббла
-.next_nibble:
-    rol dx, 4           ; Циклический сдвиг влево на 4 бита (чтобы обрабатывать старшие нибблы первыми)
-    mov ax, dx          ; Копируем AX в DX
-    and ax, 0x000F      ; Изолируем младшие 4 бита (текущий ниббл)
-    add al, '0'         ; Преобразуем в ASCII (0-9)
-    cmp al, '9'         ; Если значение > 9...
-    jbe .print_char     
-    add al, 7           ; ...добавляем 7 для букв A-F (ASCII 'A' - '9' = 8, но 0x0A -> 'A')
-.print_char:
-    mov ah, 0x0E        ; Функция BIOS: вывод символа
-    mov bh, 0x00        ; Страница 0
-    int 0x10            ; Выводим символ
-    loop .next_nibble   ; Переходим к следующему нибблу
-    mov ah, 0x0E        ; \r
-    mov al, 0x0D
-    mov bh, 0x00
-    int 0x10
-    mov ah, 0x0E        ; \n
-    mov al, 0x0A
-    mov bh, 0x00
-    int 0x10
-    pop es
-    pop ds
-    popa                ; Восстанавливаем регистры
     ret
 
 ; === Обработчики ошибок === ;
@@ -309,27 +254,27 @@ protected_mode:
     ; Настройка 32-битного стека
     mov esp, 0x7c00
 
-    ; Проверка адреса фреймбуфера
-    mov edi, [framebuffer]
+    ; ; Проверка адреса фреймбуфера
+    ; mov edi, [framebuffer]
 
-    ; Установка цвета
-    mov eax, 0x00ff0000     ; Красный (ARGB)
+    ; ; Установка цвета
+    ; mov eax, 0x00ff0000     ; Красный (ARGB)
 
-    ; Расчет общего кол-ва пикселей
-    movzx ecx, word [screen_width]
-    movzx ebx, word [screen_height]
-    imul ecx, ebx
+    ; ; Расчет общего кол-ва пикселей
+    ; movzx ecx, word [screen_width]
+    ; movzx ebx, word [screen_height]
+    ; imul ecx, ebx
 
-    ; Заливка фреймбуфера
-    cld
-    rep stosd
+    ; ; Заливка фреймбуфера
+    ; cld
+    ; rep stosd
 
-    ; Передача информации о VBE режме в ядро
-    ; через регистры
-    mov eax, [framebuffer]
-    mov bx,  [screen_width]
-    mov cx,  [screen_height]
-    mov dl,  [bpp]
+    ; ; Передача информации о VBE режме в ядро
+    ; ; через регистры
+    ; mov eax, [framebuffer]
+    ; mov bx,  [screen_width]
+    ; mov cx,  [screen_height]
+    ; mov dl,  [bpp]
 
-    ; Переход в ядро
-    ; jmp 0x8600
+    call main
+    jmp $

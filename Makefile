@@ -1,72 +1,58 @@
 # Конфигурация
-CC := gcc
-ASM := nasm
-LD = ld
+MAKE := make
+BUILD_DIR := build
 # QEMU := qemu-system-x86_64
 QEMU := qemu-system-i386
 
-# Флаги
-ASMFLAGS := -f bin
-CFLAGS := -O0 -nostdlib -ffreestanding -fno-pie -fno-pic \
-		  -mno-red-zone -m32 -march=i386 -mtune=i386
-LDFLAGS := -m elf_i386 -T linker.ld -nostdlib --oformat binary
-
 # Исходные файлы
-BOOT_SRC := boot.asm
-STAGE2_SRC := stage2.asm
-KERNEL_ENTRY := kernel_entry.asm
-KERNEL_SRCS := kernel.c $(wildcard *.c)
-KERNEL_OBJS := kernel_entry.o $(KERNEL_SRCS:.c=.o)
+BOOT_DIR := bootloader/stage1
+STAGE2_DIR := bootloader/stage2
+KERNEL_DIR := kernel
+
 
 # Цели по умолчанию
-all: disk.img
+all: always $(BUILD_DIR)/disk.img
 
 # Создание образа диска
-disk.img: boot.bin stage2.bin kernel.bin text.txt
+$(BUILD_DIR)/disk.img: $(BOOT_DIR)/$(BUILD_DIR)/boot.bin $(STAGE2_DIR)/$(BUILD_DIR)/stage2.bin $(KERNEL_DIR)/$(BUILD_DIR)/kernel.bin
 	dd if=/dev/zero of=$@ bs=512 count=2880
 	mkfs.fat -F 12 $@
 
-	dd if=boot.bin of=$@ seek=0 conv=notrunc
-	mcopy -i $@ kernel.bin ::/
-	mcopy -i $@ stage2.bin ::/
-	mcopy -i $@ text.txt ::/
+	dd if=$(BOOT_DIR)/$(BUILD_DIR)/boot.bin of=$@ seek=0 conv=notrunc
+	mcopy -i $@ $(KERNEL_DIR)/$(BUILD_DIR)/kernel.bin ::/
+	mcopy -i $@ $(STAGE2_DIR)/$(BUILD_DIR)/stage2.bin ::/
 
 # Сборка загрузчика
-boot.bin: $(BOOT_SRC)
-	$(ASM) $(ASMFLAGS) $< -o $@
+$(BOOT_DIR)/$(BUILD_DIR)/boot.bin:
+	$(MAKE) -C $(BOOT_DIR)
 
 # Сборка stage2
-stage2.bin: $(STAGE2_SRC)
-	$(ASM) $(ASMFLAGS) $< -o $@
+$(STAGE2_DIR)/$(BUILD_DIR)/stage2.bin:
+	$(MAKE) -C $(STAGE2_DIR)
 
-# Линковка kernel
-kernel.bin: $(KERNEL_OBJS)
-	$(LD) $(LDFLAGS) $^ -o $@
-
-# Cборка kernel_entry
-kernel_entry.o: $(KERNEL_ENTRY)
-	$(ASM) -f elf32 $< -o $@
-
-# Компиляция С-файлов
-%.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
+# Сборка ядра
+$(KERNEL_DIR)/$(BUILD_DIR)/kernel.bin:
+	$(MAKE) -C $(KERNEL_DIR)
 
 # Запуск в QEMU
-run: disk.img
-	# $(QEMU) -nographic -drive format=raw,file=$<
-	# $(QEMU) -display curses -serial stdio -drive format=raw,file=$<
-	# $(QEMU) -display none -vnc :0 -drive format=raw,file=$<
-	# $(QEMU) -display vnc=:0 -vga std -drive format=raw,file=$<
+run: $(BUILD_DIR)/disk.img always
 	$(QEMU) -display vnc=:0 -vga std -fda $<
 
+always:
+	mkdir -p $(BUILD_DIR)
+
 # Очистка
-clean:
+clean: always
 	rm -f *.o *.bin *.img *.s
+	rm -rf $(BUILD_DIR)
+	$(MAKE) -C $(BOOT_DIR) clean
+	$(MAKE) -C $(STAGE2_DIR) clean
+	$(MAKE) -C $(KERNEL_DIR) clean
 
 kill:
-	pkill qemu-system-x86_64
+	pkill qemu-system-x386
 
-ls:	disk.img
+ls:	always $(BUILD_DIR)/disk.img
 	mdir -i $< ::/
 
-.PHONY: all run clean
+.PHONY: all run clean kill
