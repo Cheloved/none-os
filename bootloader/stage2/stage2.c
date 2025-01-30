@@ -12,6 +12,9 @@ void main()
     if ( read_vbeinfo (&vbeinfo) != 0x004F )
         puts(" [Error] while reading VBE info\r\n");
 
+    uint16_t mode_buffer[256];
+    uint16_t mode_count = 0;
+
     // Проход по всем доступным режимам
     for ( uint16_t* mode_list = (uint16_t*)(vbeinfo.video_modes_ptr);
           *mode_list != 0xFFFF; mode_list++)
@@ -28,8 +31,12 @@ void main()
         if ( !(modeinfo.attributes & 0x80) )
             continue;
 
+        // Сохранение номера в буффер
+        mode_buffer[mode_count++] = *mode_list;
+
         // Вывод основной информации о режиме
-        puts("Mode 0x");
+        putdec16(mode_count);
+        puts(") Mode 0x");
         puthex16(*mode_list);
         puts(" --- Resolution: ");
         putdec16(modeinfo.width);
@@ -37,4 +44,15 @@ void main()
         putdec16(modeinfo.height);
         nl();
     }
+
+    puts("Enter mode number to select: ");
+    char buffer[32] = {0};
+    gets((char*)&buffer);
+    nl();
+
+    uint16_t sel = sdec16tob((char*)&buffer);
+    if ( select_mode(mode_buffer[sel-1]) != 0x004F )
+        puts("[Error] Unable to select mode!\r\n");
+
+    puts("Mode successfully selected!");
 }

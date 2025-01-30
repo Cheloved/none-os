@@ -8,6 +8,64 @@ uint8_t btoa(uint8_t byte)
     return byte;
 }
 
+uint8_t atob(char c)
+{
+    if ( c >= '0' && c <= '9' )
+        return (uint8_t)(c - 48);
+
+    if ( c >= 'A' && c <= 'F' )
+        return (uint8_t)(c - 65 + 10);
+
+    if ( c >= 'a' && c <= 'f' )
+        return (uint8_t)(c - 97 + 10);
+
+    return 0;
+}
+
+uint8_t sdec8tob(char* str)
+{
+    uint8_t result = 0;
+
+    uint8_t size = 0;
+    while ( *str && *str != 0x0D )
+    {
+        size++;
+        str++;
+    }
+    str--;
+
+    uint8_t power = 1;
+    for ( uint8_t i = 0; i < size; i++ )
+    {
+        result += atob(*(str--)) * power;
+        power *= 10;
+    }
+
+    return result;
+}
+
+uint16_t sdec16tob(char* str)
+{
+    uint16_t result = 0;
+
+    uint16_t size = 0;
+    while ( *str && *str != 0x0D )
+    {
+        size++;
+        str++;
+    }
+    str--;
+
+    uint16_t power = 1;
+    for ( uint16_t i = 0; i < size; i++ )
+    {
+        result += atob(*(str--)) * power;
+        power *= 10;
+    }
+
+    return result;
+}
+
 void putc(uint8_t c)
 {
     __asm__ __volatile__
@@ -91,4 +149,29 @@ void putdec16(uint16_t dec)
         dec /= 10;
     }
     putn((char*)&buffer, 5);
+}
+
+char getc()
+{
+    char result;
+    __asm__ __volatile__
+        (
+            "int $0x16\n"
+            "movb %%al, %0"
+            : "=r" (result)
+            : "a" (0x0000)
+        );
+    return result & 0x00FF;
+}
+
+void gets(char* buffer)
+{
+    char c;
+    do
+    {
+        c = getc();
+        *(buffer++) = c;
+        putc(c);
+    } while ( c != 0x0D );
+    *buffer = 0;
 }

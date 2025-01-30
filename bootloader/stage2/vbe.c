@@ -27,3 +27,17 @@ uint16_t read_mode_info(uint16_t number, VBEModeInfo* modeinfo)
         );
     return return_code;
 }
+
+uint16_t select_mode(uint16_t number)
+{
+    uint16_t return_code;
+    __asm__ __volatile__
+        (
+            "orw $0x4000, %%bx\n"
+            "int $0x10\n"
+            "movw %%ax, %0"
+            : "=r" (return_code)
+            : "a" (0x4F02), "b" (number)
+        );
+    return return_code;
+}
