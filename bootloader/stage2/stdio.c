@@ -170,6 +170,14 @@ void gets(char* buffer)
     do
     {
         c = getc();
+        if ( c == 0x08 )
+        {
+            buffer--;
+            putc(c);
+            putc(' ');
+            putc(c);
+            continue;
+        }
         *(buffer++) = c;
         putc(c);
     } while ( c != 0x0D );
