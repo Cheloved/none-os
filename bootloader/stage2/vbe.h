@@ -1,5 +1,6 @@
 #pragma once
 #include <stdint.h>
+#include "stdio.h"
 
 typedef struct
 {
@@ -140,6 +141,20 @@ typedef struct
     uint8_t reserved0[190];
 } __attribute__((packed)) VBEModeInfo;
 
+typedef struct
+{
+    uint16_t number;
+    uint16_t width;
+    uint16_t height;
+    uint8_t  bpp;
+    uint32_t vmem;
+} VideoMode;
+
+extern VideoMode selected_mode;
+
 uint16_t read_vbeinfo(VBEInfo* vbeinfo);
 uint16_t read_mode_info(uint16_t number, VBEModeInfo* modeinfo);
 uint16_t select_mode(uint16_t number);
+uint8_t user_select_mode();
+
+uint16_t get_far_value(uint32_t ptr);
