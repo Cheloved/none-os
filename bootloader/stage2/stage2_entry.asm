@@ -1,7 +1,5 @@
 [bits 16]
 
-init_msg db "Stage 2 entered", 0xD, 0xA, 0
-
 extern main
 global stage2_entry
 
@@ -43,3 +41,5 @@ print_string:
 .done:
     popa
     ret
+
+init_msg db "Stage 2 entered", 0xD, 0xA, 0
