@@ -28,7 +28,7 @@ void main()
 
     /* if ( !load_file("STAGE2  ", "BIN", KERNEL_BASE) ) */
     if ( !load_file("KERNEL  ", "BIN", KERNEL_BASE) )
-        puts("Kernel successfully loaded at 0xC0000000");
+        puts("Kernel successfully loaded at 0x02000000");
     else
         puts("Error reading kernel");
 

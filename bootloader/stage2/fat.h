@@ -5,7 +5,7 @@
 
 #define BOOT_BASE   0x7C00
 #define FAT_BASE    0x7E00
-#define KERNEL_BASE 0xC0000000
+#define KERNEL_BASE 0x02000000
 #define MAXFILES    256
 
 typedef struct
