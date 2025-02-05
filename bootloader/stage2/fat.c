@@ -87,6 +87,7 @@ int read_disk(uint8_t drive, uint16_t lba, uint8_t num_sectors, uint32_t buffer)
     __asm__ __volatile__(
         "pushw %%es\n"                    // Сохраняем текущее значение ES
         "movw %w3, %%ax\n"                // Загружаем сегмент в AX
+        "movw %%ax, %%es\n"               // Загружаем сегмент в ES
         "int $0x13\n"                     // Вызов прерывания BIOS для работы с диском
         "setc %%al\n"                     // Установить AL = 1, если CF = 1 (ошибка)
         "movb %%ah, %0\n"                 // Сохранить код ошибки из AH в error_code
