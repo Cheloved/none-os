@@ -54,7 +54,8 @@ uint8_t load_file(char filename[8], char extension[3], uint32_t base)
     {
         puts("Reading cluster "); putdec16(cluster); nl();
         uint16_t lba = 33 + (cluster-2) * bd.sectors_per_cluster;
-        read_disk(bd.ebr_drive_number, lba, bd.sectors_per_cluster, base);
+        if ( !read_disk(bd.ebr_drive_number, lba, bd.sectors_per_cluster, base) )
+            return 1;
 
         uint16_t offset = cluster * 3 / 2;
         uint16_t check = (cluster * 3) % 2;

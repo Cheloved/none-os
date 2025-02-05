@@ -30,7 +30,7 @@ void main()
     if ( !load_file("KERNEL  ", "BIN", KERNEL_BASE) )
         puts("Kernel successfully loaded at 0xC0000000");
     else
-        puts("Kernel not found");
+        puts("Error reading kernel");
 
     /* puts("Entering protected mode\r\n"); */
     /* init_gdt(); */
