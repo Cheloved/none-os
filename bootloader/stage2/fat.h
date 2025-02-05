@@ -1,9 +1,12 @@
 #pragma once
 
 #include <stdint.h>
+#include "stdio.h"
 
-#define BOOT_BASE 0x7C00
-#define FAT_BASE  0x7E00
+#define BOOT_BASE   0x7C00
+#define FAT_BASE    0x7E00
+#define KERNEL_BASE 0xC0000000
+#define MAXFILES    256
 
 typedef struct
 {
@@ -50,8 +53,11 @@ extern uint16_t fat_size;
 extern uint16_t root_dir_ptr;
 
 extern BootData bd;
-extern RootEntry files[256];
+extern RootEntry files[MAXFILES];
 extern uint16_t file_count;
 
 void read_boot_data();
 void read_root_dir();
+uint8_t load_file(char filename[8], char extension[3], uint32_t base);
+int read_disk(uint8_t drive, uint16_t lba, uint8_t num_sectors, uint32_t buffer);
+void lba_to_chs(uint16_t lba, uint8_t* cylinder, uint8_t* head, uint8_t* sector);
