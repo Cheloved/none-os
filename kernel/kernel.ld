@@ -2,7 +2,7 @@ OUTPUT_FORMAT("binary")
 OUTPUT_ARCH(i386)
 ENTRY(main)
 SECTIONS {
-    . = 0x8600;
+    . = 0x10000;
     .text : { *(.text) }
     .data : { *(.data) }
     .rodata : { *(.rodata) }

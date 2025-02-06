@@ -51,7 +51,7 @@ void set_gdt_entry(int num, uint32_t base, uint32_t limit, uint8_t access, uint8
 void init_gdt()
 {
     // Установка значений дескриптора
-    current_gdt_desc.limit = (sizeof(GDT_entry) * 3) - 1;
+    current_gdt_desc.limit = sizeof(current_gdt) - 1;
     current_gdt_desc.base = (uint32_t)&current_gdt;
 
     set_gdt_entry(0, 0, 0, 0, 0);                // Null segment
@@ -72,20 +72,12 @@ void init_gdt()
     set_gdt_entry(2, 0, 0xFFFFFFFF, 0x92, 0xCF); // Сегмент данных
         // 0x92 - то же самое, но Type flags[0] = 0 - data
 
-    // Загрукзка GDT
-    asm volatile("lgdt %0" : : "m" (current_gdt_desc));
-
-    // Включение защищенного режима
-    asm volatile("mov %cr0, %eax; or %eax, 1; mov %eax, %cr0");
+    puts("  GDT size: "); puthex16((uint16_t)current_gdt_desc.limit); nl();
+    puts("  GDT base: "); puthex16((uint16_t)current_gdt_desc.base); nl();
+    puts("  CODE_SEG: "); puthex16((uint16_t)CODE_SEG); nl();
+    puts("  DATA_SEG: "); puthex16((uint16_t)DATA_SEG); nl();
 
     // Переход к выполнению кода в защищенном режиме
-    // TODO: заменить адрес на точку входа ядра
-    __asm__ __volatile__
-        (
-            "mov %0, %%edi\n"
-            "jmp *%%di\n"
-            :
-            : "r" (test)
-            : "di", "memory"
-        );
+    puts("Long jump to kernel\r\n");
+    kernel_jump();
 }

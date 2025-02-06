@@ -54,8 +54,10 @@ uint8_t load_file(char filename[8], char extension[3], uint32_t base)
     {
         puts("Reading cluster "); putdec16(cluster); nl();
         uint16_t lba = 33 + (cluster-2) * bd.sectors_per_cluster;
-        if ( !read_disk(bd.ebr_drive_number, lba, bd.sectors_per_cluster, base) )
-            return 1;
+
+        uint8_t err;
+        if ( (err = read_disk(bd.ebr_drive_number, lba, bd.sectors_per_cluster, base)) != 0 )
+            { puts("Err code: "); puthex16(err); nl; return 2; }
 
         uint16_t offset = cluster * 3 / 2;
         uint16_t check = (cluster * 3) % 2;
@@ -74,7 +76,7 @@ uint8_t load_file(char filename[8], char extension[3], uint32_t base)
 }
 
 // Функция для чтения секторов с диска через int 0x13
-int read_disk(uint8_t drive, uint16_t lba, uint8_t num_sectors, uint32_t buffer) {
+uint16_t read_disk(uint8_t drive, uint16_t lba, uint8_t num_sectors, uint32_t buffer) {
     // Получение CHS адреса
     uint8_t sector;
     uint8_t cylinder;
@@ -83,31 +85,37 @@ int read_disk(uint8_t drive, uint16_t lba, uint8_t num_sectors, uint32_t buffer)
 
     uint16_t segment = buffer >> 16;     // Сегмент (старшие 16 бит)
     uint16_t offset = buffer & 0xFFFF;   // Смещение (младшие 16 бит)
+    puts("Reading LBA "); putdec16(lba); puts(" to "); puthex16(segment); putc(':'); puthex16(offset);
+    nl();
 
     uint8_t error_code;
-    __asm__ __volatile__(
-        "pushw %%es\n"                    // Сохраняем текущее значение ES
-        "movw %w3, %%ax\n"                // Загружаем сегмент в AX
-        "movw %%ax, %%es\n"               // Загружаем сегмент в ES
-        "int $0x13\n"                     // Вызов прерывания BIOS для работы с диском
-        "setc %%al\n"                     // Установить AL = 1, если CF = 1 (ошибка)
-        "movb %%ah, %0\n"                 // Сохранить код ошибки из AH в error_code
-        "popw %%es\n"                     // Восстанавливаем предыдущее значение ES
-        : "=a"(error_code)                // Возвращаемое значение: AL (флаг ошибки)
-        : "a"(0x0200 | num_sectors),      // AH = 0x02 (чтение), AL = количество секторов
-          "b"(offset),                    // BX = смещение
-          "m"(segment),                   // segment = сегмент
-          "c"((cylinder << 8) | sector),  // CH = цилиндр, CL = сектор
-          "d"((head << 8) | drive)        // DH = головка, DL = номер диска
-        : "memory", "cc"              // Информируем компилятор о побочных эффектах
+
+    __asm__ __volatile__ (
+        "pushw %%es\n\t"          // Сохраняем текущий сегмент ES
+        "movw %w[seg], %%es\n\t"  // Устанавливаем сегмент ES
+        "movb %[num_sectors], %%al\n\t"  // Количество секторов
+        "movb %[cylinder], %%ch\n\t"     // Номер цилиндра
+        "movb %[sector], %%cl\n\t"       // Номер сектора
+        "movb %[head], %%dh\n\t"         // Номер головки
+        "movb %[drive], %%dl\n\t"        // Номер диска
+        "movw %w[offset], %%bx\n\t"      // Смещение буфера
+        "movb $0x02, %%ah\n\t"           // Функция чтения секторов
+        "int $0x13\n\t"                  // Вызов BIOS
+        "jc .error\n\t"                  // Если CF = 1, произошла ошибка
+        "xor %%ah, %%ah\n\t"             // Очищаем AH (успех)
+        "jmp .done\n"
+        ".error:\n\t"
+        "movb %%ah, %[error]\n"          // Сохраняем код ошибки
+        ".done:\n\t"
+        "popw %%es\n\t"                  // Восстанавливаем сегмент ES
+        : [error] "=m" (error_code)      // Выходной параметр: код ошибки
+        : [num_sectors] "m" (num_sectors), [cylinder] "m" (cylinder),
+          [sector] "m" (sector), [head] "m" (head), [drive] "m" (drive),
+          [seg] "r" (segment), [offset] "r" (offset)
+        : "eax", "ebx", "ecx", "edx", "memory", "cc"
     );
 
-    // Проверка на ошибку
-    if (error_code & 0x01) {
-        return error_code;  // Вернуть код ошибки
-    }
-
-    return 0;  // Успех
+    return error_code;
 }
 
 void lba_to_chs(uint16_t lba, uint8_t* cylinder, uint8_t* head, uint8_t* sector)

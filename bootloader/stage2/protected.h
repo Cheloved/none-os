@@ -2,6 +2,8 @@
 
 #include <stdint.h>
 #include "vbe.h"
+#include "fat.h"
+#include "multiboot.h"
 
 // === Определение GDT === //
 typedef struct {

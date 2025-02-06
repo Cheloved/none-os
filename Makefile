@@ -39,6 +39,9 @@ run: $(BUILD_DIR)/disk.img always
 	$(QEMU) -display vnc=:0 -vga std -fda $<
 	# $(QEMU) -display vnc=:0 -vga std -drive format=raw,file=$<
 
+debug: $(BUILD_DIR)/disk.img always
+	$(QEMU) -display vnc=:0 -vga std -s -S -fda $<
+
 always:
 	mkdir -p $(BUILD_DIR)
 
