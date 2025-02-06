@@ -1,5 +1,7 @@
 [bits 16]
 
+extern Multiboot
+extern info
 extern current_gdt_desc
 extern CODE_SEG
 extern DATA_SEG
@@ -40,6 +42,10 @@ protected_mode:
 
     ; mov edi, 0xfd000020
     ; mov dword [edi], 0x0000FF00
+
+    mov eax, Multiboot
+    mov ebx, info
+    mov edx, 0x2BADB002
 
     ; Переход к загруженному ядру
     jmp 0x08:0x10000

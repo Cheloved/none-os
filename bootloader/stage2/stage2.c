@@ -6,6 +6,7 @@
 #include "multiboot.h"
 
 MultibootInfo Multiboot;
+Info info;
 
 void __attribute__((cdecl)) main()
 {
@@ -16,7 +17,7 @@ void __attribute__((cdecl)) main()
     else
         puts("Error setting video mode\r\n");
 
-    puts("  Framebuffer addr: 0x"); puthex16(selected_mode.vmem >> 16); puthex16(selected_mode.vmem & 0xFFFF); nl();
+    puts("  Framebuffer addr: 0x"); puthex16((uint32_t)selected_mode.vmem >> 16); puthex16((uint32_t)selected_mode.vmem & 0xFFFF); nl();
 
     puts("Reading FAT table\r\n");
     read_boot_data();
@@ -45,6 +46,14 @@ void __attribute__((cdecl)) main()
     puts("  init_gdt() address: "); puthex16((uint16_t)init_gdt); nl();
     puts("  kernel_jump() address: "); puthex16((uint16_t)kernel_jump); nl();
     init_gdt();
+
+    // Сбор данных
+    info = *((Info*)&selected_mode);
+
+    // Переход к выполнению кода в защищенном режиме
+    puts("Long jump to kernel\r\n");
+    kernel_jump();
+
     puts("After\r\n");
     while(1);
     return;

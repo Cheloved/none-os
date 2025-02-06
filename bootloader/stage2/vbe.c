@@ -112,7 +112,7 @@ uint8_t user_select_mode()
                                                  .width=width,
                                                  .height=height,
                                                  .bpp=bpp,
-                                                 .vmem=vmem};
+                                                 .vmem=(uint32_t*)vmem};
 
         // Вывод основной информации о режиме
         putdec16(mode_count);

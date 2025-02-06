@@ -147,7 +147,7 @@ typedef struct
     uint16_t width;
     uint16_t height;
     uint8_t  bpp;
-    uint32_t vmem;
+    uint32_t* vmem;
 } VideoMode;
 
 extern VideoMode selected_mode;

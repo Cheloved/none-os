@@ -29,4 +29,14 @@ typedef struct
     uint32_t vbe_interface_len;    // Длина интерфейса VBE
 } MultibootInfo;
 
+typedef struct
+{
+    uint16_t number;
+    uint16_t width;
+    uint16_t height;
+    uint8_t  bpp;
+    uint32_t* vmem;
+} Info;
+
 extern MultibootInfo multiboot;
+extern Info info;

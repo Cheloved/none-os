@@ -76,8 +76,4 @@ void init_gdt()
     puts("  GDT base: "); puthex16((uint16_t)current_gdt_desc.base); nl();
     puts("  CODE_SEG: "); puthex16((uint16_t)CODE_SEG); nl();
     puts("  DATA_SEG: "); puthex16((uint16_t)DATA_SEG); nl();
-
-    // Переход к выполнению кода в защищенном режиме
-    puts("Long jump to kernel\r\n");
-    kernel_jump();
 }
