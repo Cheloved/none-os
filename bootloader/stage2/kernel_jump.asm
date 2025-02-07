@@ -23,14 +23,17 @@ kernel_jump:
     mov cr0, eax
 
     ; Переход в 32-битный режим и обновление CS
-    jmp 0x08:protected_mode
+    ; jmp 0x08:protected_mode
+    push word [CODE_SEG]
+    push word protected_mode
+    retf
 
 
 [bits 32]
 protected_mode:
     ; Обновление сегментных регистров
-    ; mov ax, DATA_SEG
-    mov ax, 0x10
+    ; mov ax, 0x10
+    mov ax, [DATA_SEG]
     mov ds, ax
     mov es, ax
     mov fs, ax
@@ -40,12 +43,12 @@ protected_mode:
     ; Настройка 32-битного стека
     mov esp, 0x10000
 
-    ; mov edi, 0xfd000020
-    ; mov dword [edi], 0x0000FF00
-
     mov eax, Multiboot
     mov ebx, info
     mov edx, 0x2BADB002
 
     ; Переход к загруженному ядру
-    jmp 0x08:0x10000
+    ; jmp 0x08:0x10000
+    push dword [CODE_SEG]
+    push dword 0x10000 
+    retf
