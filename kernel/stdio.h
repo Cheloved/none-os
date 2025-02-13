@@ -26,7 +26,10 @@ void set_color(uint32_t color);
 void clear_screen();
 void putc(char c);
 void puts(char* str);
+void putn(char* str, uint32_t n);
+void nl();
 void puthex(uint32_t hex);
+void putdec(uint32_t dec);
 
 // 8x13 font
 extern uint8_t bitmap[95][13];

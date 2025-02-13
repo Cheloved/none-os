@@ -166,6 +166,17 @@ void puts(char* str)
         putc(*str++);
 }
 
+void putn(char* str, uint32_t n)
+{
+    while ( str && *str && n-- )
+        putc(*str++);
+}
+
+void nl()
+{
+    putc('\n');
+}
+
 void puthex(uint32_t hex)
 {
     uint8_t mask = 0xF;
@@ -175,4 +186,22 @@ void puthex(uint32_t hex)
         putc(btoa(nibble));
     }
     putc(btoa(hex&mask));
+}
+
+void putdec(uint32_t dec)
+{
+    uint8_t max_length = 10;
+    uint8_t buffer[max_length];
+    for ( int i = 0; i < max_length; i++ )
+        buffer[i] = 32;
+
+    for ( uint8_t i = 0; i < max_length; i++ )
+    {
+        if ( dec == 0 )
+            break;
+
+        buffer[max_length-1-i] = btoa(dec % 10);
+        dec /= 10;
+    }
+    putn((char*)&buffer, max_length);
 }

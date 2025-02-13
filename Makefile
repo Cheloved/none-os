@@ -8,6 +8,7 @@ QEMU := qemu-system-i386
 BOOT_DIR := bootloader/stage1
 STAGE2_DIR := bootloader/stage2
 KERNEL_DIR := kernel
+FILES_DIR  := files
 
 
 # Цели по умолчанию
@@ -21,6 +22,7 @@ $(BUILD_DIR)/disk.img: $(BOOT_DIR)/$(BUILD_DIR)/boot.bin $(STAGE2_DIR)/$(BUILD_D
 	dd if=$(BOOT_DIR)/$(BUILD_DIR)/boot.bin of=$@ seek=0 conv=notrunc
 	mcopy -i $@ $(KERNEL_DIR)/$(BUILD_DIR)/kernel.bin ::/
 	mcopy -i $@ $(STAGE2_DIR)/$(BUILD_DIR)/stage2.bin ::/
+	mcopy -i $@ $(FILES_DIR)/* ::/
 
 # Сборка загрузчика
 $(BOOT_DIR)/$(BUILD_DIR)/boot.bin:
@@ -56,7 +58,7 @@ clean: always
 kill:
 	pkill qemu-system-x386
 
-ls:	always $(BUILD_DIR)/disk.img
+ls:	$(BUILD_DIR)/disk.img always
 	mdir -i $< ::/
 
 .PHONY: all run clean kill

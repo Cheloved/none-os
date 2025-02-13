@@ -2,6 +2,7 @@
 
 #include "../bootloader/stage2/multiboot.h"
 #include "stdio.h"
+#include "disk.h"
 
 MultibootInfo* mbi;
 Info* inf;
@@ -34,8 +35,34 @@ void main()
         puts("Warning: multiboot magic number is NOT correct\n");
         puts("         should be: "); puthex(MULTIBOOT_BOOTLOADER_MAGIC);
         puts("\n         got:       "); puthex(magic);
-
     }
+
+    puts("Reading FAT table from RAM\r\n");
+    read_boot_data();
+    read_root_dir();
+    for ( uint16_t i = 0; i < file_count; i++ )
+    {
+        puts("  Found file: ");
+        putn(files[i].filename, 8);
+        putn(files[i].extension, 3);
+        nl();
+    }
+
+    puts("Initializing IDE\r\n");
+    init_ide();
+
+    uint16_t text_first = get_file_first_cluster("TEXT    ", "TXT");
+    puts("Text file first cluster: ");
+    putdec(text_first);
+    nl();
+
+    uint16_t lba = 33 + (text_first-2) * bd.sectors_per_cluster;
+    char buffer[512];
+
+    puts("Content of TEXT.TXT:\n");
+    ide_read_sector(lba, (uint8_t*)&buffer);
+    puts("Content of TEXT.TXT:\n");
+    putn(buffer, 20);
 
     while(1);
 }
