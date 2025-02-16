@@ -28,9 +28,6 @@ ebr_volume_label:           db 'NONE OS    '            ; 11 bytes
 ebr_system_id:              db 'FAT12   '               ; 8 bytes
 
 start:
-    ; Установка номера диска
-    mov [ebr_drive_number], dl
-
     ; Настройка сегментных регистров
     xor ax, ax
     mov ds, ax
@@ -39,6 +36,10 @@ start:
     ; Настройка стека
     mov ss, ax
     mov sp, 0x7c00
+
+    ; BIOS при загрузке устанавливает
+    ; номер загрузочного диска в DL
+    mov byte [ebr_drive_number], dl
 
     ; Установка текстового режима 80х25
     mov ax, 0x0003

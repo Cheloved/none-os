@@ -21,8 +21,10 @@ void __attribute__((cdecl)) main()
 
     puts("Reading FAT table\r\n");
     read_boot_data();
-    puts((char*)bd.oem);
+
+    putn((char*)bd.ebr_volume_label, 11);
     nl();
+
     read_root_dir();
     for ( uint16_t i = 0; i < file_count; i++ )
     {

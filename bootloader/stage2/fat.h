@@ -22,8 +22,8 @@ typedef struct
     uint16_t sectors_per_fat;
     uint16_t sectors_per_track;
     uint16_t heads;
-    uint8_t  hidden_sectors;
-    uint8_t  large_sector_count;
+    uint32_t  hidden_sectors;
+    uint32_t  large_sector_count;
 
     uint8_t ebr_drive_number;
     uint8_t reserved;
