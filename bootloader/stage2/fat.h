@@ -49,6 +49,17 @@ typedef struct
     uint32_t file_size;
 } __attribute__((packed)) RootEntry;
 
+// Структура DAP (Disk Address Packet)
+typedef struct 
+{
+    uint16_t size;     // Размер DAP (0x10)
+    uint16_t count;    // Количество секторов
+    uint16_t offset;   // Смещение буфера
+    uint16_t segment;  // Сегмент буфера
+    uint32_t lba_low;  // Младшие 32 бита LBA
+    uint32_t lba_high; // Старшие 32 бита (не используется)
+} __attribute__((packed)) DAP;
+
 extern uint16_t fat_size;
 extern uint16_t root_dir_ptr;
 
@@ -59,7 +70,6 @@ extern uint16_t file_count;
 void read_boot_data();
 void read_root_dir();
 uint8_t load_file(char filename[8], char extension[3], uint32_t base);
-uint16_t read_disk(uint8_t drive, uint16_t lba, uint8_t num_sectors, uint32_t buffer);
-void lba_to_chs(uint16_t lba, uint8_t* cylinder, uint8_t* head, uint8_t* sector);
 
+extern uint16_t __attribute__((cdecl)) _read_disk(uint32_t lba, uint8_t num_sectors, uint32_t buffer, uint8_t drive);
 extern void __attribute__((cdecl)) kernel_jump();

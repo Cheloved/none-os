@@ -48,9 +48,6 @@ void main()
         nl();
     }
 
-    puts("Initializing IDE\r\n");
-    init_ide();
-
     uint16_t text_first = get_file_first_cluster("TEXT    ", "TXT");
     puts("Text file first cluster: ");
     putdec(text_first);
@@ -59,8 +56,8 @@ void main()
     uint16_t lba = 33 + (text_first-2) * bd.sectors_per_cluster;
     char buffer[512];
 
-    puts("Content of TEXT.TXT:\n");
-    ide_read_sector(lba, (uint8_t*)&buffer);
+    ata_init();
+    ata_read(lba, buffer);
     puts("Content of TEXT.TXT:\n");
     putn(buffer, 20);
 

@@ -20,7 +20,7 @@ bdb_hidden_sectors:         dd 0
 bdb_large_sector_count:     dd 0
 
 ; === Extended boot record === ;
-ebr_drive_number:           db 0                        ; 0x00 floppy, 0x80 hdd
+ebr_drive_number:           db 0x80                     ; 0x00 floppy, 0x80 hdd
                             db 0                        ; reserved
 ebr_signature:              db 0x29
 ebr_volume_id:              db 0x01, 0x02, 0x03, 0x04   ; serial number
@@ -28,6 +28,9 @@ ebr_volume_label:           db 'NONE OS    '            ; 11 bytes
 ebr_system_id:              db 'FAT12   '               ; 8 bytes
 
 start:
+    ; Установка номера диска
+    mov [ebr_drive_number], dl
+
     ; Настройка сегментных регистров
     xor ax, ax
     mov ds, ax
@@ -42,15 +45,11 @@ start:
     int 0x10
 
     ; === Чтение FAT таблиц и Root directory === ;
-    ; Получение адреса сектора в формате CHS
-    mov ax, 1        ; LBA = 1
-    call lba2chs
-
     cli
-    mov ah, 0x02        ; Функция чтения секторов
-    mov al, 31          ; Количество секторов для чтения ( 32 - 1MBR )
+    mov ax, 31          ; Количество секторов для чтения ( 32 - 1MBR )
     mov bx, 0x7e00      ; Адрес, куда загружать ( 0x7C00 + 512 )
-    int 0x13
+    mov edx, 1
+    call read_lba
     sti
     jc disk_error       ; Проверка ошибки (CF=1 при ошибке)
     ; При отсутствии ошибки, вывести соотв. сообщение
@@ -85,23 +84,19 @@ start:
 .stage2_found:
     mov bx, data_start  ; Адрес загрузки следующего сектора
     mov di, [si + 26]   ; Номер первого кластера с файлом
-    ; mov cx, 11          ; Проверка имени файла
-    ; call print_string_count
+    mov cx, 11          ; Проверка имени файла
+    call print_string_count
     
 .read_loop:
     ; Чтение следующего сектора файла
-    ; Получение адреса сектора в формате CHS
-    mov ax, di                           ; AX = cluster
-    sub ax, 2                            ; AX = cluster - 2
-    mul byte [bdb_sectors_per_cluster]   ; AX = (cluster-2)*sec_per_cluster
-    add ax, 33                           ; AX = start+(cluster-2)*sec_per_cluster
-    call lba2chs
+    mov dx, di                           ; DX = cluster
+    sub dx, 2                            ; DX = cluster - 2
+    mul byte [bdb_sectors_per_cluster]   ; DX = (cluster-2)*sec_per_cluster
+    add dx, 33                           ; DX = start+(cluster-2)*sec_per_cluster
 
     cli
-    mov ah, 0x02        ; Функция чтения секторов
-    mov al, 1           ; Количество секторов для чтения
-    mov dl, 0x00        ; Явное указание номера диска
-    int 0x13
+    mov ax, 1           ; Количество секторов для чтения
+    call read_lba
     sti
     jnc .read_ok         ; Проверка ошибки (CF=1 при ошибке)
     mov si, loop_read_error_msg
@@ -156,6 +151,56 @@ start:
 
     jmp 0x0000:data_start
 
+; Функция read_lba: читает секторы с диска через LBA
+; Вход:
+;   ES:BX = Адрес буфера (сегмент:смещение)
+;   AX    = Количество секторов для чтения (1-255)
+;   EDX   = LBA-сектор (32-битное значение)
+; Выход:
+;   CF = 1 при ошибке, 0 при успехе
+;   AX = Код ошибки (если CF=1)
+read_lba:
+    pusha               ; Сохраняем все регистры
+    push es            ; Сохраняем ES
+    mov di, sp         ; DI указывает на вершину стека
+
+    ; dap_size:                   db 0x10       ; Размер DAP
+    ; dap_reserved:               db 0x00       ; Зарезервировано
+    ; dap_num_sectors:            dw 1          ; Секторов для чтения
+    ; dap_offset:                 dw 0x7E00     ; Смещение буфера
+    ; dap_segment:                dw 0x0000     ; Сегмент буфера
+    ; dap_lba:                    dq 0
+
+    ; Создаем DAP (Disk Address Packet) в стеке
+    push word 0x0000   ; Резерв (старшие 32 бита LBA)
+    push word 0x0000
+    push edx           ; Младшие 32 бита LBA
+    push es            ; Сегмент буфера
+    push bx            ; Смещение буфера
+    push ax            ; Количество секторов
+    push word 0x0010   ; Размер DAP (16 байт) и зарезервированный байт
+
+    ; Настраиваем параметры для INT 0x13
+    mov si, sp         ; SI указывает на DAP в стеке
+    mov ah, 0x42       ; Функция расширенного чтения (LBA)
+    mov dl, [ebr_drive_number] ; Номер диска (переданный BIOS)
+    int 0x13           ; Вызов прерывания
+    jc .error          ; Если ошибка (CF=1)
+
+    ; Успех: очищаем стек и возвращаем CF=0
+    add sp, 16         ; Удаляем DAP из стека
+    pop es             ; Восстанавливаем ES
+    popa               ; Восстанавливаем все регистры
+    clc                ; CF = 0
+    ret
+.error:
+    mov [di + 18], ax  ; Сохраняем код ошибки в AX (через стек)
+    add sp, 16         ; Удаляем DAP из стека
+    pop es             ; Восстанавливаем ES
+    popa               ; Восстанавливаем регистры
+    stc                ; CF = 1
+    ret
+
 ; Обработчик ошибки чтения с диска
 disk_error:
     mov si, error_msg
@@ -208,38 +253,6 @@ print_string_count:
     mov ax, 0x0E0A        ; \n
     int 0x10
     popa
-    ret
-
-; Функция перевода LBA(Logical Block Address) в CHS(Cylinder-Head-Sector)
-; Вход:
-;   - ax:             LBA адрес
-; Выход:
-;   - cx[bits 0-5] :  сектор
-;   - cx[bits 6-15]:  цилиндр
-;   - dh           :  головка
-lba2chs:
-    push ax
-    push dx
-
-    xor dx, dx                       ; dx = 0
-    div word [bdb_sectors_per_track] ; ax = LBA / sectors_per_track
-                                     ; dx = LBA % sectors_per_track
-    inc dx                           ; dx = (LBA % sectors_per_track + 1) = sector
-    mov cx, dx                       ; cx = sector
-
-    xor dx, dx                       ; dx = 0
-    div word [bdb_heads]             ; ax = (LBA/sectors_per_track)/heads = cylinder
-                                     ; dx = (LBA/sectors_per_track)%heads = head
-
-    mov dh, dl                       ; dh = head
-    mov ch, al                       ; ch = cylinder (lower 8 bits)
-    shl ah, 6
-    or cl, ah                        ; cl[6-8] = cylinder (upper 2 bits)
-
-    pop ax
-    mov dl, al                       ; Восстановить DL
-    pop ax
-
     ret
 
 ; Данные

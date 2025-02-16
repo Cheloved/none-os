@@ -38,11 +38,13 @@ $(KERNEL_DIR)/$(BUILD_DIR)/kernel.bin:
 
 # Запуск в QEMU
 run: $(BUILD_DIR)/disk.img always
-	$(QEMU) -display vnc=:0 -vga std -fda $<
+	# $(QEMU) -display vnc=:0 -vga std -fda $<
+	$(QEMU) -display vnc=:0 -vga std -drive file=$<,format=raw,if=ide,index=0
 	# $(QEMU) -display vnc=:0 -vga std -drive format=raw,file=$<
 
 debug: $(BUILD_DIR)/disk.img always
-	$(QEMU) -display vnc=:0 -vga std -s -S -fda $<
+	# $(QEMU) -display vnc=:0 -vga std -s -S -fda $<
+	$(QEMU) -s -S -display vnc=:0 -vga std -drive file=$<,format=raw,if=ide,index=0
 
 always:
 	mkdir -p $(BUILD_DIR)

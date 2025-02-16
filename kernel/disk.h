@@ -69,10 +69,5 @@ void read_boot_data();
 void read_root_dir();
 uint16_t get_file_first_cluster(char filename[8], char extension[3]);
 /* uint8_t load_file(char filename[8], char extension[3], uint32_t base); */
-void ide_read_sector(uint32_t lba, uint8_t* buffer);
-
-void ide_reset(); // Сброс Primary IDE-канала
-uint8_t ide_detect(); // Проверка наличия устройства на Primary канале (Master)
-void ide_identify();
-void ide_wait_ready();
-void init_ide();
+void ata_init();
+uint8_t ata_read(uint32_t lba, uint8_t* buffer);
