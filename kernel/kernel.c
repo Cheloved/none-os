@@ -3,6 +3,7 @@
 #include "../bootloader/stage2/multiboot.h"
 #include "stdio.h"
 #include "disk.h"
+#include "interrupts.h"
 
 MultibootInfo* mbi;
 Info* inf;
@@ -61,5 +62,18 @@ void main()
     puts("Content of TEXT.TXT:\n");
     putn(buffer, 20);
 
+    // Установкa базовых векторов прерываний:
+    // IRQ0–IRQ7: 0x20–0x27
+    // IRQ8–IRQ15: 0x28–0x2F
+    puts("Remapping PIC\n");
+    pic_remap(0x20, 0x28);
+
+    // Составление и загрузка IDT
+    puts("Initializing IDT\n");
+    idt_init();
+
+    asm volatile("sti");
+
+    puts("Main loop entered\n");
     while(1);
 }
