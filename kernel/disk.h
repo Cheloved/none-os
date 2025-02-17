@@ -9,13 +9,14 @@
 #define MAXFILES    256
 
 // Порты контроллера IDE (Primary Channel)
-#define IDE_DATA        0x1F0
-#define IDE_SECTOR_CNT  0x1F2
-#define IDE_LBA_LOW     0x1F3
-#define IDE_LBA_MID     0x1F4
-#define IDE_LBA_HIGH    0x1F5
-#define IDE_DRIVE_SEL   0x1F6
-#define IDE_COMMAND     0x1F7
+#define ATA_DATA        0x1F0
+#define ATA_ERROR       0x1F1
+#define ATA_SECTOR_CNT  0x1F2
+#define ATA_LBA_LOW     0x1F3
+#define ATA_LBA_MID     0x1F4
+#define ATA_LBA_HIGH    0x1F5
+#define ATA_DRIVE_SEL   0x1F6
+#define ATA_COMMAND     0x1F7
 
 typedef struct
 {

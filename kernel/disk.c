@@ -54,13 +54,12 @@ uint16_t get_file_first_cluster(char filename[8], char extension[3])
 
 void ata_init()
 {
-    /* outb(0x1F6, 0xE0 | (bd.ebr_drive_number << 4));    // LBA mode, Master */
-    outb(0x1F6, 0xE0 | (0x80 << 4));    // LBA mode, Master
-    while ((inb(0x1F7) & 0xC0) != 0x40); // BUSY и DRDY биты
+    outb(ATA_DRIVE_SEL, 0xE0 | (bd.ebr_drive_number << 4)); // LBA mode, Master
+    while ((inb(ATA_COMMAND) & 0xC0) != 0x40);              // BUSY и DRDY биты
 
-    if (inb(0x1F7) & 0x01) 
+    if (inb(ATA_COMMAND) & 0x01) 
     {
-        uint8_t error = inb(0x1F1);
+        uint8_t error = inb(ATA_ERROR);
         puts(" [!] Error in ata_init(). Error code: ");
         puthex(error);
         nl();
@@ -69,27 +68,27 @@ void ata_init()
 
 uint8_t ata_read(uint32_t lba, uint8_t* buffer)
 {
-    outb(0x1F2, 1);                  // Количество секторов
-    outb(0x1F3, lba & 0xFF);         // LBA Low
-    outb(0x1F4, (lba >> 8) & 0xFF);  // LBA Mid
-    outb(0x1F5, (lba >> 16) & 0xFF); // LBA High
-    outb(0x1F6, 0xE0 | ((lba >> 24) & 0x0F)); // Drive и LBA High
-    outb(0x1F7, 0x20);       // Команда READ SECTORS
+    outb(ATA_SECTOR_CNT, 1);                          // Количество секторов
+    outb(ATA_LBA_LOW, lba & 0xFF);                    // LBA Low
+    outb(ATA_LBA_MID, (lba >> 8) & 0xFF);             // LBA Mid
+    outb(ATA_LBA_HIGH, (lba >> 16) & 0xFF);           // LBA High
+    outb(ATA_DRIVE_SEL, 0xE0 | ((lba >> 24) & 0x0F)); // Drive и LBA High
+    outb(ATA_COMMAND, 0x20);                          // Команда READ SECTORS
 
     // Ожидание готовности данных
-    while ((inb(0x1F7) & 0x08) == 0);
+    while ((inb(ATA_COMMAND) & 0x08) == 0);
 
     // Чтение данных
     for (int i = 0; i < 256; i++) 
     {
-        uint16_t data = inw(0x1F0);
+        uint16_t data = inw(ATA_DATA);
         buffer[i*2] = data & 0xFF;
         buffer[i*2 + 1] = (data >> 8) & 0xFF;
     }
 
-    if (inb(0x1F7) & 0x01) 
+    if (inb(ATA_COMMAND) & 0x01) 
     {
-        uint8_t error = inb(0x1F1);
+        uint8_t error = inb(ATA_ERROR);
         puts(" [!] Error in ata_read(). Error code: ");
         puthex(error);
         nl();
