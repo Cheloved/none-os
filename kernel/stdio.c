@@ -205,3 +205,11 @@ void putdec(uint32_t dec)
     }
     putn((char*)&buffer, max_length);
 }
+
+uint8_t getc()
+{
+    while ( !INPUT_READY );
+    uint8_t scancode = LAST_SCANCODE;
+    INPUT_READY = 0;
+    return scancode_to_ascii(scancode);
+}

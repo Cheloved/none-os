@@ -20,7 +20,6 @@ void idt_init()
     for (int i = 0; i < IDT_ENTRIES; i++)
         idt_set_entry(i, (uint32_t)_default_int_handler, 0x08, 0x8E);
 
-    /* idt_set_entry(0x21, (uint32_t)keyboard_handler, 0x08, 0x8E); */
     idt_set_entry(0x21, (uint32_t)_keyboard_int_handler, 0x08, 0x8E);
 
     asm volatile("lidt %0" : : "m"(idt_ptr));
@@ -51,14 +50,20 @@ void pic_remap(int offset1, int offset2)
 void keyboard_handler()
 {
     uint8_t scancode = inb(KEYBOARD_DATA_PORT); // Чтение скан-кода
-    if (scancode <= 0x80) {                      // Проверка на нажатие клавиши
-        switch (scancode) {
-            case 0x02: putc('1'); break;
-            case 0x03: putc('2'); break;
-            case 0x04: putc('3'); break;
-            default: break;
-        }
-    }
+
+    if ( scancode == 0x2A )
+        SHIFT_PRESSED = 1;
+
+    if ( scancode == 0xAA )
+        SHIFT_PRESSED = 0;
+
+    if ( scancode == 0x3A )
+        CAPS_TOGGLE = !CAPS_TOGGLE;
+
+    /* puthex(scancode); nl(); */
+    if (scancode <= 0x80)                       // Проверка на нажатие клавиши
+        { LAST_SCANCODE = scancode; INPUT_READY = 1; }
+
     // Отправка EOI (End of Interrupt) в PIC
     outb(0x20, 0x20); // Уведомление Master PIC
 }

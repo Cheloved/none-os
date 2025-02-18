@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include "../bootloader/stage2/multiboot.h"
+#include "kbd.h"
 
 #define COLOR_BLACK 0x00000000
 #define COLOR_WHITE 0x00FFFFFF
@@ -30,6 +31,8 @@ void putn(char* str, uint32_t n);
 void nl();
 void puthex(uint32_t hex);
 void putdec(uint32_t dec);
+
+uint8_t getc();
 
 // 8x13 font
 extern uint8_t bitmap[95][13];

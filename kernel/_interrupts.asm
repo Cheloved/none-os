@@ -8,7 +8,9 @@ global _default_int_handler
 align 4
 
 _default_int_handler:
-    iret
+    pushad
+    popad
+    iretd
 
 _keyboard_int_handler:
     pushad

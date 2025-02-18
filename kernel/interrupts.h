@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include "stdio.h"
 #include "ports.h"
+#include "kbd.h"
 
 #define PIC1_COMMAND 0x20
 #define PIC1_DATA    0x21

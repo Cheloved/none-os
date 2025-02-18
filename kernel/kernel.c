@@ -4,6 +4,7 @@
 #include "stdio.h"
 #include "disk.h"
 #include "interrupts.h"
+#include "kbd.h"
 
 MultibootInfo* mbi;
 Info* inf;
@@ -75,5 +76,8 @@ void main()
     asm volatile("sti");
 
     puts("Main loop entered\n");
-    while(1);
+    while(1)
+    {
+        putc(getc());
+    }
 }
