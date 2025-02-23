@@ -128,19 +128,25 @@ uint8_t user_select_mode()
         nl();
     }
 
-    puts("Enter mode number to select: ");
-    char buffer[32] = {0};
-    gets((char*)&buffer);
-    nl();
-
-    uint16_t sel = sdec16tob((char*)&buffer);
-    if ( select_mode(mode_buffer[sel-1].number) != 0x004F )
+    uint8_t selection_done = 0;
+    while ( !selection_done )
     {
-        puts("[Error] Unable to select mode!\r\n");
-        return -1;
+        puts("Enter mode number to select: ");
+        char buffer[32] = {0};
+        gets((char*)&buffer);
+        nl();
+
+        uint16_t sel = sdec16tob((char*)&buffer);
+        if ( sel == 0 || sel-1 >= mode_count )
+        { puts("[Error] Wrong mode index\r\n"); continue; }
+
+        if ( select_mode(mode_buffer[sel-1].number) != 0x004F )
+        { puts("[Error] Unable to select this mode!\r\n"); continue; }
+
+        selection_done = 1;
+        selected_mode = mode_buffer[sel-1];
     }
 
-    selected_mode = mode_buffer[sel-1];
     return 0;
 }
 
