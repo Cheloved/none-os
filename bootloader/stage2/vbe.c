@@ -1,6 +1,7 @@
 #include "vbe.h"
 
-VideoMode selected_mode;
+VBEModeInfo global_selected_vbemode;
+VideoMode   selected_mode;
 
 uint16_t read_vbeinfo(VBEInfo* vbeinfo)
 {
@@ -145,6 +146,7 @@ uint8_t user_select_mode()
 
         selection_done = 1;
         selected_mode = mode_buffer[sel-1];
+        read_mode_info (mode_buffer[sel-1].number, &global_selected_vbemode);
     }
 
     return 0;

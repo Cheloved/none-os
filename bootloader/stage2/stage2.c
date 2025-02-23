@@ -4,6 +4,7 @@
 #include "protected.h"
 #include "fat.h"
 #include "multiboot.h"
+#include "fetching.h"
 
 MultibootInfo Multiboot;
 Info info;
@@ -51,6 +52,7 @@ void __attribute__((cdecl)) main()
 
     // Сбор данных
     info = *((Info*)&selected_mode);
+    fetch_multiboot(&Multiboot);
 
     // Переход к выполнению кода в защищенном режиме
     puts("Long jump to kernel\r\n");

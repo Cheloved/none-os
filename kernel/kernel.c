@@ -39,12 +39,30 @@ void main()
         puts("\n         got:       "); puthex(magic);
     }
 
+    struct MMapEntry{ uint32_t base_low, base_high, len_low, len_high, type; } MMapEntry;
+    puts("Multiboot data:\n");
+    puts(" ---- Flags: "); puthex(mbi->flags); nl();
+    puts(" ---- Lower mem size: "); putdec(mbi->mem_lower); puts("kb"); nl();
+    puts(" ---- Upper mem size: "); putdec(mbi->mem_upper); puts("kb"); nl();
+    puts(" ---- Boot device number: "); puthex(mbi->boot_device); nl();
+    puts(" ---- Mmap length:  "); putdec(mbi->mmap_length); nl();
+    puts(" ---- Mmap entries: "); putdec(mbi->mmap_length / sizeof(MMapEntry)); nl();
+    puts(" ---- Mmap addr:    "); puthex(mbi->mmap_addr); nl();
+    puts(" ---- Bootloader name: "); putn((char*)mbi->boot_loader_name, 4); nl();
+    puts(" ---- Framebuffer addr low:  "); puthex(mbi->framebuffer_addr_low); nl();
+    puts(" ---- Framebuffer addr high: "); puthex(mbi->framebuffer_addr_high); nl();
+    puts(" ---- Framebuffer width:   "); putdec(mbi->framebuffer_width); nl();
+    puts(" ---- Framebuffer height:  "); putdec(mbi->framebuffer_height); nl();
+    puts(" ---- Framebuffer bpp:     "); putdec(mbi->framebuffer_bpp); nl();
+    puts(" ---- Framebuffer type:      "); puthex(mbi->framebuffer_type); nl();
+
+
     puts("Reading FAT table from RAM\r\n");
     read_boot_data();
     read_root_dir();
     for ( uint16_t i = 0; i < file_count; i++ )
     {
-        puts("  Found file: ");
+        puts(" ---- Found file: ");
         putn(files[i].filename, 8);
         putn(files[i].extension, 3);
         nl();

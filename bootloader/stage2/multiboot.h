@@ -13,7 +13,7 @@ typedef struct
     uint32_t cmdline;              // Командная строка ядра
     uint32_t mods_count;           // Количество загруженных модулей
     uint32_t mods_addr;            // Адрес списка модулей
-    uint32_t syms[4];              // Информация о символах
+    uint32_t syms[3];              // Информация о символах
     uint32_t mmap_length;          // Длина карты памяти
     uint32_t mmap_addr;            // Адрес карты памяти
     uint32_t drives_length;        // Длина информации о дисках
@@ -23,10 +23,20 @@ typedef struct
     uint32_t apm_table;            // Таблица APM
     uint32_t vbe_control_info;     // Информация о VBE
     uint32_t vbe_mode_info;        // Режим VBE
-    uint32_t vbe_mode;             // Текущий режим VBE
-    uint32_t vbe_interface_seg;    // Сегмент интерфейса VBE
-    uint32_t vbe_interface_off;    // Смещение интерфейса VBE
-    uint32_t vbe_interface_len;    // Длина интерфейса VBE
+    uint16_t vbe_mode;             // Текущий режим VBE
+    uint16_t vbe_interface_seg;    // Сегмент интерфейса VBE
+    uint16_t vbe_interface_off;    // Смещение интерфейса VBE
+    uint16_t vbe_interface_len;    // Длина интерфейса VBE
+
+    uint32_t framebuffer_addr_low;
+    uint32_t framebuffer_addr_high;
+    uint32_t framebuffer_pitch;
+    uint32_t framebuffer_width;
+    uint32_t framebuffer_height;
+    uint8_t  framebuffer_bpp;
+    uint8_t  framebuffer_type;
+    uint8_t  color_info[6];
+
 } MultibootInfo;
 
 typedef struct
@@ -37,6 +47,3 @@ typedef struct
     uint8_t  bpp;
     uint32_t* vmem;
 } Info;
-
-extern MultibootInfo multiboot;
-extern Info info;
