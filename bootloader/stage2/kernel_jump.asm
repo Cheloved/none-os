@@ -41,7 +41,8 @@ protected_mode:
     mov ss, ax
 
     ; Настройка 32-битного стека
-    mov esp, 0x10000
+    ; mov esp, 0x10000
+    mov esp, 0x7C00
 
     mov eax, Multiboot
     mov ebx, info

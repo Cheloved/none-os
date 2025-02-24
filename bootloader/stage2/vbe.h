@@ -150,8 +150,8 @@ typedef struct
     uint32_t* vmem;
 } VideoMode;
 
-extern VBEModeInfo global_selected_vbemode __attribute__((section(".data")));
-extern VideoMode   selected_mode           __attribute__((section(".data")));
+extern VBEModeInfo global_selected_vbemode;
+extern VideoMode   selected_mode;
 
 uint16_t read_vbeinfo(VBEInfo* vbeinfo);
 uint16_t read_mode_info(uint16_t number, VBEModeInfo* modeinfo);

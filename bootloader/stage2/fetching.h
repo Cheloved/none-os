@@ -5,7 +5,7 @@
 #include "fat.h"
 #include "vbe.h"
 
-#define MMAPADDR 0x5000
+#define MMAPADDR 0x2000
 
 // Структура элемента карты памяти
 typedef struct
