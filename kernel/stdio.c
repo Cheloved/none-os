@@ -101,6 +101,123 @@ uint8_t bitmap[95][13] = {
 {0x00, 0x00, 0xf0, 0x18, 0x18, 0x18, 0x1c, 0x0f, 0x1c, 0x18, 0x18, 0x18, 0xf0},
 {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x06, 0x8f, 0xf1, 0x60, 0x00, 0x00, 0x00}};  // :126
 
+char* itoa(uint32_t value, char* str, uint8_t base)
+{
+    char * rc;
+    char * ptr;
+    char * low;
+    // Check for supported base.
+    if ( base < 2 || base > 36 )
+    {
+        *str = '\0';
+        return str;
+    }
+    rc = ptr = str;
+    // Set '-' for negative decimals.
+    if ( value < 0 && base == 10 )
+    {
+        *ptr++ = '-';
+    }
+    // Remember where the numbers start.
+    low = ptr;
+    // The actual conversion.
+    do
+    {
+        // Modulo is negative for negative value. This trick makes abs() unnecessary.
+        *ptr++ = "zyxwvutsrqponmlkjihgfedcba9876543210123456789abcdefghijklmnopqrstuvwxyz"[35 + value % base];
+        value /= base;
+    } while ( value );
+    // Terminating the string.
+    *ptr-- = '\0';
+    // Invert the numbers.
+    while ( low < ptr )
+    {
+        char tmp = *low;
+        *low++ = *ptr;
+        *ptr-- = tmp;
+    }
+    return rc;
+}
+
+void clear_buffer(char* buffer, uint32_t size)
+{
+    while ( size-- )
+        buffer[size] = 0;
+}
+
+uint32_t strlen(char* str)
+{
+    uint32_t len = 0;
+    while ( *str++ )
+        len++;
+    return len+1;
+}
+
+void printf(const char* fmt, ...)
+{
+    // Указатель на первый аргумент после 'fmt'
+    char* arg_ptr = (char*)&fmt + sizeof(fmt);
+
+    const uint32_t itoa_buffer_size = 32;
+    char itoa_buffer[itoa_buffer_size];
+    char* sym = fmt;
+    while ( *sym )
+    {
+        if ( *sym != '%' )
+        { putc(*sym++); continue; }
+
+        switch ( *(sym+1) )
+        {
+            case 'd':
+                {
+                    int value = *(int*)arg_ptr;
+                    arg_ptr += sizeof(int);
+                    puts(itoa(value, itoa_buffer, 10));
+                    clear_buffer(itoa_buffer, itoa_buffer_size);
+                    break;
+                }
+            case 'x':
+                {
+                    int value = *(int*)arg_ptr;
+                    arg_ptr += sizeof(int);
+                    puts("0x");
+                    puts(itoa(value, itoa_buffer, 16));
+                    clear_buffer(itoa_buffer, itoa_buffer_size);
+                    break;
+                }
+            case 'b':
+                {
+                    int value = *(int*)arg_ptr;
+                    arg_ptr += sizeof(int);
+                    puts("0b");
+                    puts(itoa(value, itoa_buffer, 2));
+                    clear_buffer(itoa_buffer, itoa_buffer_size);
+                    break;
+                }
+            case 's': // FIX: not working
+                {
+                    char* str = (char*)arg_ptr;
+                    arg_ptr += strlen(str);
+                    puts(str);
+                    break;
+                }
+            case 'c':
+                {
+                    char c = *(char*)arg_ptr;
+                    arg_ptr += sizeof(char);
+                    putc(c);
+                    break;
+                }
+            default:
+                {
+                    puts(" Wrong format in printf()!\n");
+                    return;
+                }
+        }
+        sym += 2;
+    }
+}
+
 uint8_t btoa(uint8_t byte)
 {
     byte += '0';

@@ -27,34 +27,29 @@ void main()
     puts("Kernel successfully loaded!\n");
 
     if ( magic == MULTIBOOT_BOOTLOADER_MAGIC )
-    {
-        puts("Multiboot magic number is correct: ");
-        puthex(magic);
-        putc('\n');
-    }
+        printf("Multiboot magic number is correct: %x\n", magic);
     else
-    {
-        puts("Warning: multiboot magic number is NOT correct\n");
-        puts("         should be: "); puthex(MULTIBOOT_BOOTLOADER_MAGIC);
-        puts("\n         got:       "); puthex(magic);
-    }
+        printf("Warning: multiboot magic number is NOT correct\n"
+               "         should be: %x\n"
+               "         got:       %x\n", MULTIBOOT_BOOTLOADER_MAGIC, magic);
 
     struct MMapEntry{ uint32_t base_low, base_high, len_low, len_high, type; } MMapEntry;
-    puts("Multiboot data:\n");
-    puts(" ---- Flags: "); puthex(mbi->flags); nl();
-    puts(" ---- Lower mem size: "); putdec(mbi->mem_lower); puts("kb"); nl();
-    puts(" ---- Upper mem size: "); putdec(mbi->mem_upper); puts("kb"); nl();
-    puts(" ---- Boot device number: "); puthex(mbi->boot_device); nl();
-    puts(" ---- Mmap length:  "); putdec(mbi->mmap_length); nl();
-    puts(" ---- Mmap entries: "); putdec(mbi->mmap_length / sizeof(MMapEntry)); nl();
-    puts(" ---- Mmap addr:    "); puthex(mbi->mmap_addr); nl();
-    puts(" ---- Bootloader name: "); putn((char*)mbi->boot_loader_name, 4); nl();
-    puts(" ---- Framebuffer addr low:  "); puthex(mbi->framebuffer_addr_low); nl();
-    puts(" ---- Framebuffer addr high: "); puthex(mbi->framebuffer_addr_high); nl();
-    puts(" ---- Framebuffer width:   "); putdec(mbi->framebuffer_width); nl();
-    puts(" ---- Framebuffer height:  "); putdec(mbi->framebuffer_height); nl();
-    puts(" ---- Framebuffer bpp:     "); putdec(mbi->framebuffer_bpp); nl();
-    puts(" ---- Framebuffer type:      "); puthex(mbi->framebuffer_type); nl();
+    /* puts("Multiboot data:\n"); */
+    printf("Multiboot data:\n");
+    printf("    Flags: %b\n", mbi->flags);
+    printf("    Lower mem size: %d kb\n", mbi->mem_lower);
+    printf("    Upper mem size: %d kb\n", mbi->mem_upper);
+    printf("    Boot device number: %d (%x)\n", mbi->boot_device, mbi->boot_device);
+    printf("    Mmap length:  %d\n", mbi->mmap_length);
+    printf("    Mmap entries: %d\n", mbi->mmap_length / sizeof(MMapEntry));
+    printf("    Mmap addr:    %x\n", mbi->mmap_addr);
+    puts("    Bootloader name: "); putn((char*)mbi->boot_loader_name, 4); nl();
+    printf("    Framebuffer addr low:  %x\n", mbi->framebuffer_addr_low);
+    printf("    Framebuffer addr high: %x\n", mbi->framebuffer_addr_high);
+    printf("    Framebuffer width:     %d\n", mbi->framebuffer_width);
+    printf("    Framebuffer height:    %d\n", mbi->framebuffer_height);
+    printf("    Framebuffer bpp:       %d\n", mbi->framebuffer_bpp);
+    printf("    Framebuffer type:      %d\n", mbi->framebuffer_type);
 
 
     puts("Reading FAT table from RAM\r\n");
@@ -92,6 +87,8 @@ void main()
     idt_init();
 
     asm volatile("sti");
+
+    printf("\n\n   Testing printf: %d, %x, %b, %c\n\n", 123, 123, 123, 'A'); 
 
     puts("Main loop entered\n");
     while(1)

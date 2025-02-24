@@ -21,6 +21,10 @@ extern uint32_t color;
 
 extern Info* inf;
 
+char* itoa(uint32_t value, char* str, uint8_t base);
+void clear_buffer(char* buffer, uint32_t size);
+uint32_t strlen(char* str);
+void printf(const char* fmt, ...);
 uint8_t btoa(uint8_t byte);
 uint8_t atob(char c);
 void set_color(uint32_t color);
